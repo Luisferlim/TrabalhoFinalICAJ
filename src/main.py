@@ -7,7 +7,6 @@ from game.algoritmo_genetico import AlgoritmoGeneticoAStar
 
 pygame.init()
 
-# ================= CONFIG =================
 LINHAS = 25
 COLUNAS = 25
 TAM_CELULA = 30
@@ -18,9 +17,9 @@ ALTURA = LINHAS * TAM_CELULA
 PROB_OBSTACULO = 0.30
 DELAY_PASSO_MS = 20
 
-# ================= PYGAME =================
+#inicializando o pygame
 screen = pygame.display.set_mode((LARGURA, ALTURA))
-pygame.display.set_caption("IA Aplicada a Jogos - Buscas e AG")
+pygame.display.set_caption("IA Aplicada a Jogos - AV2")
 clock = pygame.time.Clock()
 
 # ================= GRID =================
@@ -121,7 +120,7 @@ def gerar_mapa():
             if (i, j) in caminho_set:
                 continue
             if random.random() < PROB_OBSTACULO:
-                grid.add_obstacle(i, j)
+                grid.add_obstaculo(i, j)
 
 # ================= LOOP PRINCIPAL =================
 running = True
@@ -170,7 +169,7 @@ while running:
                     busca.valor_caminho = 8  # A*
                     gerador = busca.a_estrela()
 
-            # ALGORITMO GENÉTICO
+            # ALGORITMO GENETICO
             if event.key == pygame.K_g and etapa_atual == ETAPA_GERADO:
                 busca = None
                 gerador = None
@@ -182,7 +181,7 @@ while running:
                 )
                 ag_gerador = ag.executar_visual()
 
-        # -------- MOUSE (clique direito) --------
+        #clique direito
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
             lin, col = pos_mouse_para_celula(event.pos)
 
@@ -255,7 +254,7 @@ while running:
                 ag_gerador = None
                 print("AG FINALIZADO")
 
-    # ---------- DESENHO ----------
+    # pygame
     screen.fill((0, 0, 0))
     grid.draw(screen, TAM_CELULA)
     pygame.display.flip()

@@ -1,49 +1,93 @@
 from collections import deque
 import heapq
-import math
+from typing import Dict, Generator, List, Optional, Tuple
+
+Coordenada = Tuple[int, int]
 
 class Buscas:
-    def __init__(self, grid):
+    """
+    Implementa algoritmos clássicos de busca em grafos aplicados a um grid 2D.
+
+    Algoritmos disponíveis:
+    - BFS (Busca em Largura)
+    - DFS (Busca em Profundidade)
+    - Dijkstra
+    - A* (com parâmetros ajustáveis)
+    
+    Todos os algoritmos consideram movimentação apenas
+    para cima, baixo, esquerda e direita.
+    """
+
+    def __init__(self, grid) -> None:
+        """
+        Inicializa a classe de buscas.
+
+        :param grid: Objeto Grid contendo o mapa e as células
+        """
         self.grid = grid
-        self.linhas = grid.linhas
-        self.colunas = grid.colunas
+        self.linhas: int = grid.linhas
+        self.colunas: int = grid.colunas
 
-        self.inicio = self._encontrar_valor(2)
-        self.objetivo = self._encontrar_valor(3)
+        self.inicio: Optional[Coordenada] = self._encontrar_valor(2)
+        self.objetivo: Optional[Coordenada] = self._encontrar_valor(3)
 
-        self.visitados_count = 0
-        self.valor_caminho = 5  # sobre na main
+        self.visitados_count: int = 0
+        self.valor_caminho: int = 5  # definido externamente na main
 
-        self.pais = {}
-        self.passos = 0
+        self.pais: Dict[Coordenada, Coordenada] = {}
+        self.passos: int = 0
 
-    def _encontrar_valor(self, valor):
+    # ================= MÉTODOS AUXILIARES =================
+
+    def _encontrar_valor(self, valor: int) -> Optional[Coordenada]:
+        """
+        Localiza uma célula com um determinado valor no grid.
+
+        :param valor: Valor da célula (ex: 2=início, 3=objetivo)
+        :return: Coordenada encontrada ou None
+        """
         for i in range(self.linhas):
             for j in range(self.colunas):
                 if self.grid.celulas[i][j] == valor:
                     return (i, j)
         return None
 
-    def _vizinhos(self, no):
+    def _vizinhos(self, no: Coordenada) -> List[Coordenada]:
+        """
+        Retorna os vizinhos válidos de uma célula.
+
+        :param no: Coordenada atual
+        :return: Lista de coordenadas vizinhas acessíveis
+        """
         i, j = no
-        movimentos = [(-1,0), (1,0), (0,-1), (0,1)]
-        viz = []
+        movimentos = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        vizinhos: List[Coordenada] = []
 
         for di, dj in movimentos:
             ni, nj = i + di, j + dj
             if 0 <= ni < self.linhas and 0 <= nj < self.colunas:
-                if self.grid.celulas[ni][nj] != 1:
-                    viz.append((ni, nj))
-        return viz
+                if self.grid.celulas[ni][nj] != 1:  # não é obstáculo
+                    vizinhos.append((ni, nj))
+        return vizinhos
 
-    def _marcar_visitado(self, no):
+    def _marcar_visitado(self, no: Coordenada) -> None:
+        """
+        Marca uma célula como visitada no grid (para visualização).
+
+        :param no: Coordenada a ser marcada
+        """
         if self.grid.celulas[no[0]][no[1]] == 0:
             self.grid.celulas[no[0]][no[1]] = 4
             self.visitados_count += 1
 
-    def reconstruir_caminho(self):
+    def reconstruir_caminho(self) -> List[Coordenada]:
+        """
+        Reconstrói o caminho do objetivo até o início usando o dicionário de pais.
+
+        :return: Lista de coordenadas representando o caminho
+        """
         atual = self.objetivo
-        caminho = []
+        caminho: List[Coordenada] = []
 
         while atual != self.inicio:
             caminho.append(atual)
@@ -54,13 +98,20 @@ class Buscas:
         caminho.reverse()
 
         for no in caminho:
-            if self.grid.celulas[no[0]][no[1]] in (4, 0):
+            if self.grid.celulas[no[0]][no[1]] in (0, 4):
                 self.grid.celulas[no[0]][no[1]] = self.valor_caminho
 
         return caminho
 
     # ================= BFS =================
-    def bfs(self):
+
+    def bfs(self) -> Generator[None, None, bool]:
+        """
+        Executa Busca em Largura (BFS) de forma incremental.
+
+        :yield: Controle passo a passo para visualização
+        :return: True se encontrar o objetivo, False caso contrário
+        """
         fila = deque([self.inicio])
         visitados = {self.inicio}
 
@@ -78,12 +129,16 @@ class Buscas:
                     fila.append(viz)
                     self._marcar_visitado(viz)
 
-            yield  # passo a passo
+            yield
 
         return False
 
     # ================= DFS =================
-    def dfs(self):
+
+    def dfs(self) -> Generator[None, None, bool]:
+        """
+        Executa Busca em Profundidade (DFS) de forma incremental.
+        """
         pilha = [self.inicio]
         visitados = {self.inicio}
 
@@ -106,7 +161,11 @@ class Buscas:
         return False
 
     # ================= DIJKSTRA =================
-    def dijkstra(self):
+
+    def dijkstra(self) -> Generator[None, None, bool]:
+        """
+        Executa o algoritmo de Dijkstra de forma incremental.
+        """
         fila = [(0, self.inicio)]
         dist = {self.inicio: 0}
 
@@ -130,10 +189,14 @@ class Buscas:
         return False
 
     # ================= A* =================
-    def a_estrela(self):
-        fila = []
+
+    def a_estrela(self) -> Generator[None, None, bool]:
+        """
+        Executa o algoritmo A* de forma incremental, com visualização.
+        """
+        fila: List[Tuple[float, Coordenada]] = []
         heapq.heappush(fila, (0, self.inicio))
-        g = {self.inicio: 0}
+        g: Dict[Coordenada, float] = {self.inicio: 0}
 
         while fila:
             _, atual = heapq.heappop(fila)
@@ -149,7 +212,6 @@ class Buscas:
                     w = getattr(self, "w_heuristica", 1.0)
                     custo_mov = getattr(self, "custo_movimento", 1.0)
 
-                    custo = g[atual] + custo_mov
                     f = custo + w * self._heuristica(viz)
                     self.pais[viz] = atual
                     heapq.heappush(fila, (f, viz))
@@ -158,8 +220,14 @@ class Buscas:
             yield
 
         return False
-    
-    def a_estrela_rapido(self):
+
+    def a_estrela_rapido(self) -> bool:
+        """
+        Executa o algoritmo A* sem visualização (modo rápido),
+        utilizado para avaliação de fitness no algoritmo genético.
+
+        :return: True se encontrar o objetivo, False caso contrário
+        """
         inicio = self.inicio
         objetivo = self.objetivo
 
@@ -167,10 +235,10 @@ class Buscas:
         self.visitados_count = 0
         self.pais = {}
 
-        fila = []
+        fila: List[Tuple[float, Coordenada]] = []
         heapq.heappush(fila, (0, inicio))
 
-        g = {inicio: 0}
+        g: Dict[Coordenada, float] = {inicio: 0}
 
         w = getattr(self, "w_heuristica", 1.0)
         custo_mov = getattr(self, "custo_movimento", 1.0)
@@ -185,7 +253,6 @@ class Buscas:
 
             for viz in self._vizinhos(atual):
                 novo_g = g[atual] + custo_mov
-
                 if viz not in g or novo_g < g[viz]:
                     g[viz] = novo_g
                     f = novo_g + w * self._heuristica(viz)
@@ -194,5 +261,11 @@ class Buscas:
 
         return False
 
-    def _heuristica(self, no):
+    def _heuristica(self, no: Coordenada) -> int:
+        """
+        Heurística Manhattan utilizada pelo A*.
+
+        :param no: Coordenada atual
+        :return: Distância Manhattan até o objetivo
+        """
         return abs(no[0] - self.objetivo[0]) + abs(no[1] - self.objetivo[1])
