@@ -1,8 +1,7 @@
 import random
 import copy
-from typing import Dict, Generator, List, Optional
-
 from game.busca import Buscas
+from typing import Dict, Generator, List, Optional
 
 
 Individuo = Dict[str, float]
